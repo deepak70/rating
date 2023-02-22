@@ -1,0 +1,115 @@
+package com.ates.rating.app.service.impl;
+
+import com.ates.rating.app.exception.AppException;
+import com.ates.rating.app.model.FeedbackList;
+import com.ates.rating.app.model.UserOption;
+import com.ates.rating.app.repository.*;
+import com.ates.rating.app.security.security.services.UserDetailsImpl;
+import com.ates.rating.app.service.QuestionAnswerService;
+import com.ates.rating.app.viewmodel.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import javax.transaction.Transactional;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+@Transactional
+public class QuestionAnswerServiceImpl implements QuestionAnswerService {
+    private final SemesterRepository semesterRepository;
+    private final FeedbackAnswerRepository feedbackAnswerRepository;
+    private final FeedbackQuestionRepository feedbackQuestionRepository;
+    private final UserRepository userRepository;
+    private final UserAnswerRepository userAnswerRepository;
+    private final FeedbackListRepository feedbackListRepository;
+
+    @Override
+    public QuestionAndAnswerVM getAllQuestionAndAnswer(Long userId, String type) {
+        var feedbackUserType = feedbackListRepository.findByFeedbackType(type)
+                .orElseThrow(() -> new AppException("Feedback type not found " + type));
+        return new QuestionAndAnswerVM()
+                .setFeedbackQuestionVM(getFeedbackQuestion(feedbackUserType))
+                .setFeedbackOptionVM(getAllQuestionAnswer(feedbackUserType));
+    }
+
+    @Override
+    public ChartDataVM getChartData(String chartType, Integer year) {
+//        var options = feedbackAnswerRepository.findAllByType(chartType);
+//        var question = feedbackQuestionRepository.findAllByFeedbackList(chartType);
+        return null;
+    }
+
+    @Override
+    public Boolean checkAlreadySubmit(UserDetailsImpl user, String feedbackType, Long year) {
+        System.out.println("user = " + year);
+//        var currentYear = LocalDate.now().getYear();
+        var currentUser = userRepository.findByUsername(user.getUsername())
+                .orElseThrow(() -> new AppException("User not found"));
+        var userOptions = userAnswerRepository.findAllByUserAndYear(currentUser, Math.toIntExact(year));
+        var userOptionListForSemester = userOptions.stream()
+                .filter(userOption -> Objects.nonNull(userOption.getSemesterEntity()))
+                .toList();
+        var userOptionListForYear = userOptions.stream()
+                .filter(userOption -> Objects.isNull(userOption.getSemesterEntity()))
+                .filter(userOption -> userOption.getFeedbackQuestionEntity().getFeedbackList().getFeedbackType().equals(feedbackType))
+                .toList();
+        if (userOptionListForYear.size() > 0)
+            return true;
+        else
+            return userOptionListForSemester.size() > 0;
+    }
+
+    @Override
+    public Boolean saveAnswer(UserDetailsImpl user, OptionVM optionVM) {
+        try {
+            System.out.println("optionVM = " + optionVM);
+            var users = userRepository.findByUsername(user.getUsername())
+                    .orElseThrow(() -> new AppException("User not found " + user.getUsername()));
+            var semester = semesterRepository.findById(optionVM.getSemesterId())
+                    .orElseThrow(() -> new AppException("Invalid semester"));
+            var vm = optionVM.getSaveOptionVMS().stream()
+                    .map(saveAnswerVM -> {
+                        var question = feedbackQuestionRepository.findById(saveAnswerVM.getQuestionId())
+                                .orElseThrow(() -> new AppException("Question not found"));
+                        var answer = feedbackAnswerRepository.findById(saveAnswerVM.getSelectedOptionId()).
+                                orElseThrow(() -> new AppException("Option not found"));
+                        return new UserOption()
+                                .setUser(users)
+                                .setYear(optionVM.getYear())
+                                .setFeedback(question.getFeedbackList())
+                                .setFeedbackAnswer(answer)
+                                .setSemesterEntity(semester)
+                                .setFeedbackQuestionEntity(question);
+                    }).toList();
+
+            userAnswerRepository.saveAll(vm);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new AppException(e.getMessage());
+        }
+    }
+
+    private List<FeedbackOptionVM> getAllQuestionAnswer(FeedbackList feedbackUserType) {
+        var feedbackAnswerEntities = feedbackAnswerRepository.findAllByFeedbackList(feedbackUserType);
+        return feedbackAnswerEntities.stream()
+                .map(feedbackAnswerEntity -> new FeedbackOptionVM()
+                        .setOption(feedbackAnswerEntity.getAnswer())
+                        .setOptionId(feedbackAnswerEntity.getId()))
+                .collect(Collectors.toList());
+    }
+
+    private List<FeedbackQuestionVM> getFeedbackQuestion(FeedbackList feedbackUserType) {
+        var feedbackQuestionEntities = feedbackQuestionRepository.findAllByFeedbackList(feedbackUserType);
+        return feedbackQuestionEntities.stream()
+                .map(feedbackQuestionEntity -> new FeedbackQuestionVM()
+                        .setQuestion(feedbackQuestionEntity.getQuestion())
+                        .setQuestionId(feedbackQuestionEntity.getId()))
+                .collect(Collectors.toList());
+    }
+}
