@@ -53,7 +53,10 @@ public class ChartServiceImpl implements ChartService {
         });
         var map = chartVMS.stream()
                 .collect(Collectors.groupingBy(ChartVM::getQuestionId,
-                        Collectors.summingInt(value -> value.getOptionWeightVMS().values().stream().mapToInt(i -> i).sum())));
+                        Collectors.summingInt(value -> value.getOptionWeightVMS().values()
+                                .stream().
+                                mapToInt(i -> i)
+                                .sum())));
 
         return new ChartDataVM().setChartVMS(calculateRatingsInPercentage(chartVMS, map, options))
                 .setOptions(options.stream()

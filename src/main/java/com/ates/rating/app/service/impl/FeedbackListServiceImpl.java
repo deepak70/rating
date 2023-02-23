@@ -19,7 +19,6 @@ public class FeedbackListServiceImpl implements FeedbackListService {
     @Override
     public Boolean checkIsStudentEligibility(String feedbackType) {
         var feedbackList = feedbackListRepository.findByFeedbackTypeContainingIgnoreCase(feedbackType.toLowerCase());
-        System.out.println("feedbackList = " + feedbackList);
         if (feedbackList.isPresent())
             return feedbackList.get().getIsStudentEligibility();
         else
