@@ -29,7 +29,7 @@ public class CommonAPIController {
         var semesters = semesterService.getSemesters();
         return GenericResponse.<SemesterVM>builder()
                 .data(semesters)
-                .success(Objects.nonNull(semesters))
+                .success(true)
                 .build();
     }
 
@@ -37,6 +37,7 @@ public class CommonAPIController {
     public GenericResponse<ClassList> getClassList() {
         var classList = classService.getClassList();
         return GenericResponse.<ClassList>builder()
+                .success(true)
                 .data(classList)
                 .build();
     }
