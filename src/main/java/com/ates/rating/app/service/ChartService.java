@@ -4,5 +4,5 @@ import com.ates.rating.app.viewmodel.ChartDataVM;
 
 public interface ChartService {
 
-    ChartDataVM getChartData(String chartType, Integer year);
+    ChartDataVM getChartData(String chartType, Integer year,Long semesterId,Long classId,Long departmentId);
 }

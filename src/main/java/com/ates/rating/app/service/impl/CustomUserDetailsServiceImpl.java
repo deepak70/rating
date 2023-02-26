@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -89,6 +90,8 @@ public class CustomUserDetailsServiceImpl implements CustomUserDetailsService {
                 .setDepartmentListVM(departmentList)
                 .setClassList(classList)
                 .setUserName(user.getUsername())
+                .setRole(user.getRoles().stream().map(role -> role.getRoleName().name())
+                        .collect(Collectors.toSet()))
                 .setName(user.getName());
     }
 

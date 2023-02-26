@@ -30,7 +30,15 @@ public class UserOption extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
     private Integer year;
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "semester_entity_id")
     private SemesterEntity semesterEntity;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "department_id")
+    private DepartmentEntity department;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "class_entity_id")
+    private ClassEntity classEntity;
 }

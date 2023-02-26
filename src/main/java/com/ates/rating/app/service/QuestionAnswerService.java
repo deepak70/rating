@@ -1,9 +1,7 @@
 package com.ates.rating.app.service;
 
 import com.ates.rating.app.security.security.services.UserDetailsImpl;
-import com.ates.rating.app.viewmodel.ChartDataVM;
-import com.ates.rating.app.viewmodel.OptionVM;
-import com.ates.rating.app.viewmodel.QuestionAndAnswerVM;
+import com.ates.rating.app.viewmodel.*;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -15,5 +13,7 @@ public interface QuestionAnswerService {
 
     ChartDataVM getChartData(String chartType, Integer year);
 
-    Boolean checkAlreadySubmit(UserDetailsImpl user, String feedbackType,Long year);
+    Boolean checkAlreadySubmit(UserDetailsImpl user, String feedbackType, Long year);
+
+    SubjectWiseQuestionAnswerVM getQuestionsAndAnswerWithSemester(Long userId, String feedbackType, Long semesterId, Long year, Long classId);
 }

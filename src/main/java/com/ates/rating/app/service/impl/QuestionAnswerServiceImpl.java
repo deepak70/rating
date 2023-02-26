@@ -2,6 +2,7 @@ package com.ates.rating.app.service.impl;
 
 import com.ates.rating.app.exception.AppException;
 import com.ates.rating.app.model.FeedbackList;
+import com.ates.rating.app.model.SubjectMasterEntity;
 import com.ates.rating.app.model.UserOption;
 import com.ates.rating.app.repository.*;
 import com.ates.rating.app.security.security.services.UserDetailsImpl;
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -21,12 +23,15 @@ import java.util.stream.Collectors;
 @Slf4j
 @Transactional
 public class QuestionAnswerServiceImpl implements QuestionAnswerService {
+    private final DepartmentRepository departmentRepository;
+    private final ClassEntityRepository classEntityRepository;
     private final SemesterRepository semesterRepository;
     private final FeedbackAnswerRepository feedbackAnswerRepository;
     private final FeedbackQuestionRepository feedbackQuestionRepository;
     private final UserRepository userRepository;
     private final UserAnswerRepository userAnswerRepository;
     private final FeedbackListRepository feedbackListRepository;
+    private final SubjectMasterEntityRepository subjectMasterEntityRepository;
 
     @Override
     public QuestionAndAnswerVM getAllQuestionAndAnswer(Long userId, String type) {
@@ -46,8 +51,6 @@ public class QuestionAnswerServiceImpl implements QuestionAnswerService {
 
     @Override
     public Boolean checkAlreadySubmit(UserDetailsImpl user, String feedbackType, Long year) {
-        System.out.println("user = " + year);
-//        var currentYear = LocalDate.now().getYear();
         var currentUser = userRepository.findByUsername(user.getUsername())
                 .orElseThrow(() -> new AppException("User not found"));
         var userOptions = userAnswerRepository.findAllByUserAndYear(currentUser, Math.toIntExact(year));
@@ -65,13 +68,42 @@ public class QuestionAnswerServiceImpl implements QuestionAnswerService {
     }
 
     @Override
+    public SubjectWiseQuestionAnswerVM getQuestionsAndAnswerWithSemester(Long userId,
+                                                                         String feedbackType,
+                                                                         Long semesterId,
+                                                                         Long year,
+                                                                         Long classId) {
+        var classEntity = classEntityRepository.findById(classId)
+                .orElseThrow(() -> new AppException("class id not found"));
+        var semesterEntity = semesterRepository.findById(semesterId).
+                orElseThrow(() -> new AppException("semester id not found "));
+        List<SubjectMasterEntity> subjectMasterEntities;
+        if (classId == 0 && semesterId == 0) {
+            subjectMasterEntities = new ArrayList<>(subjectMasterEntityRepository.findBySemesterEntityAndClassEntity(semesterEntity, classEntity));
+        } else {
+            subjectMasterEntities = new ArrayList<>(subjectMasterEntityRepository.findBySemesterEntityAndClassEntityAndPattern(semesterEntity, classEntity, year.toString()));
+        }
+        var feedback = feedbackListRepository.findByFeedbackType(feedbackType)
+                .orElseThrow(() -> new AppException("Feedback type not found "));
+        return new SubjectWiseQuestionAnswerVM().setSubjectQuestionAndAnswerVMS(subjectMasterEntities.stream()
+                .map(subjectMasterEntity -> new SubjectQuestionAndAnswerVM().setSubjectId(subjectMasterEntity.getId())
+                        .setSubject(subjectMasterEntity.getSubject())
+                        .setFeedbackOptionVMS(getAllQuestionAnswer(feedback))
+                        .setFeedbackQuestionVM(getFeedbackQuestion(feedback)))
+                .toList());
+    }
+
+    @Override
     public Boolean saveAnswer(UserDetailsImpl user, OptionVM optionVM) {
         try {
-            System.out.println("optionVM = " + optionVM);
             var users = userRepository.findByUsername(user.getUsername())
                     .orElseThrow(() -> new AppException("User not found " + user.getUsername()));
             var semester = semesterRepository.findById(optionVM.getSemesterId())
                     .orElseThrow(() -> new AppException("Invalid semester"));
+            var department = departmentRepository.findById(optionVM.getDepartmentId())
+                    .orElseThrow(() -> new AppException("Department not found "));
+            var classEntity = classEntityRepository.findById(optionVM.getClassId())
+                    .orElseThrow(() -> new AppException("Class id not found"));
             var vm = optionVM.getSaveOptionVMS().stream()
                     .map(saveAnswerVM -> {
                         var question = feedbackQuestionRepository.findById(saveAnswerVM.getQuestionId())
@@ -84,6 +116,8 @@ public class QuestionAnswerServiceImpl implements QuestionAnswerService {
                                 .setFeedback(question.getFeedbackList())
                                 .setFeedbackAnswer(answer)
                                 .setSemesterEntity(semester)
+                                .setDepartment(department)
+                                .setClassEntity(classEntity)
                                 .setFeedbackQuestionEntity(question);
                     }).toList();
 
