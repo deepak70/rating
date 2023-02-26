@@ -5,8 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class FeedbackQuestionVM {
-
-    private Long questionId;
-    private String question;
+public class SubjectOptionVM {
+    private Long subjectId;
+    private String subject;
 }

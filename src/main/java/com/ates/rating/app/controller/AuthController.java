@@ -1,4 +1,4 @@
-package com.ates.rating.app.security.controllers;
+package com.ates.rating.app.controller;
 
 import com.ates.rating.app.GenericResponse;
 import com.ates.rating.app.repository.RoleRepository;
@@ -30,6 +30,7 @@ public class AuthController {
     public GenericResponse<AuthResponse> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
         var data = userDetailsService.registerUser(signUpRequest);
         return GenericResponse.<AuthResponse>builder()
+                .success(true)
                 .data(data)
                 .build();
     }

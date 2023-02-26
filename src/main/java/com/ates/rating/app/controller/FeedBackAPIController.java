@@ -5,6 +5,8 @@ import com.ates.rating.app.security.security.services.UserDetailsImpl;
 import com.ates.rating.app.service.QuestionAnswerService;
 import com.ates.rating.app.viewmodel.OptionVM;
 import com.ates.rating.app.viewmodel.QuestionAndAnswerVM;
+import com.ates.rating.app.viewmodel.SubjectQuestionAndAnswerVM;
+import com.ates.rating.app.viewmodel.SubjectWiseQuestionAnswerVM;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,14 +21,16 @@ import java.security.Principal;
 @Slf4j
 public class FeedBackAPIController {
     private final QuestionAnswerService questionAnswerService;
-    private final UserDetailsService userService;
 
     @GetMapping
-    public GenericResponse<QuestionAndAnswerVM> getQuestionsAndAnswer(@RequestParam String feedbackType,
-                                                                      Principal principal) {
+    public GenericResponse<SubjectWiseQuestionAnswerVM> getQuestionsAndAnswerWithSemester(@RequestParam String feedbackType,
+                                                                                          @RequestParam(required = false) Long semesterId,
+                                                                                          @RequestParam(required = false) Long year,
+                                                                                          @RequestParam(required = false) Long classId,
+                                                                                          Principal principal) {
         var user = (UserDetailsImpl) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
-        var data = questionAnswerService.getAllQuestionAndAnswer(user.getId(), feedbackType);
-        return GenericResponse.<QuestionAndAnswerVM>builder()
+        var data = questionAnswerService.getQuestionsAndAnswerWithSemester(user.getId(), feedbackType, semesterId, year, classId);
+        return GenericResponse.<SubjectWiseQuestionAnswerVM>builder()
                 .data(data)
                 .success(true)
                 .build();
@@ -49,7 +53,7 @@ public class FeedBackAPIController {
                                                        @RequestParam Long year,
                                                        Principal principal) {
         var user = (UserDetailsImpl) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
-        var data = questionAnswerService.checkAlreadySubmit(user, userType,year);
+        var data = questionAnswerService.checkAlreadySubmit(user, userType, year);
         return GenericResponse.<Boolean>builder()
                 .success(data)
                 .data(data)

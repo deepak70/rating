@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,7 @@ public class ChartServiceImpl implements ChartService {
     private final FeedbackListRepository feedbackListRepository;
 
     @Override
-    public ChartDataVM getChartData(String chartType, Integer year) {
+    public ChartDataVM getChartData(String chartType, Integer year, Long semesterId, Long classId, Long departmentId) {
 
         var feedbackList = feedbackListRepository.findByFeedbackType(chartType)
                 .orElseThrow(() -> new AppException("Feedback type not found " + chartType));
@@ -78,8 +79,11 @@ public class ChartServiceImpl implements ChartService {
         var objectList = options.stream()
                 .map(feedbackAnswerEntity -> {
                     var answer = maps.get(feedbackAnswerEntity.getAnswer()) * 10;
+                    var percentage = answer / (map.get(chartVM.getQuestionId()) / 10D);
                     return new Options().setOptionId(feedbackAnswerEntity.getId())
-                            .setPercentage(BigDecimal.valueOf(map.get(chartVM.getQuestionId()) == 0 ? answer : answer / (map.get(chartVM.getQuestionId()) / 10)));
+                            .setPercentage(BigDecimal.valueOf(map.get(chartVM.getQuestionId()) == 0 ? 0 : percentage)
+                                    .setScale(2, RoundingMode.HALF_UP)
+                            );
                 }).toList();
         return new OptionWeightVM().setOptions(objectList);
     }

@@ -13,7 +13,8 @@ import java.util.List;
 public class OptionVM {
     @NotNull(message = "Year should not be blank")
     private Integer year;
-    @NotNull(message = "Semester should not be blank")
     private Long semesterId;
+    private Long classId;
+    private Long departmentId;
     private List<SaveOptionVM> saveOptionVMS;
 }
