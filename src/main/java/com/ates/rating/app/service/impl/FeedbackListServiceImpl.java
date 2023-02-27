@@ -1,6 +1,6 @@
 package com.ates.rating.app.service.impl;
 
-import com.ates.rating.app.exception.AppException;
+import com.ates.rating.app.exception.handler.AppException;
 import com.ates.rating.app.repository.FeedbackListRepository;
 import com.ates.rating.app.service.FeedbackListService;
 import lombok.RequiredArgsConstructor;

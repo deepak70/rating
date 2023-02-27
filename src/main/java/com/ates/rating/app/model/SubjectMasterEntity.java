@@ -28,6 +28,7 @@ public class SubjectMasterEntity extends BaseEntity {
     private ClassEntity classEntity;
 
     private String pattern;
+    private Integer subjectMasterId;
     @Column(columnDefinition = "boolean default true")
     private boolean status = true;
 

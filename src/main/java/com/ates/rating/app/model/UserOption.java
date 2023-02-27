@@ -39,6 +39,9 @@ public class UserOption extends BaseEntity {
     private DepartmentEntity department;
 
     @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "subject_master_entity_id")
+    private SubjectMasterEntity subjectMasterEntity;
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "class_entity_id")
     private ClassEntity classEntity;
 }

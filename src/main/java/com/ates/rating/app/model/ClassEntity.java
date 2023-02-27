@@ -18,9 +18,10 @@ public class ClassEntity extends BaseEntity {
     private Long id;
     private String className;
     private Boolean active;
+    private Integer classId;
 
     @ManyToOne
-    @JoinColumn(name = "department_entity_id",nullable = false)
+    @JoinColumn(name = "department_entity_id", nullable = false)
     private DepartmentEntity departmentEntity;
 
 

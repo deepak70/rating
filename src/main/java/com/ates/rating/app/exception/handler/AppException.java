@@ -1,4 +1,4 @@
-package com.ates.rating.app.exception;
+package com.ates.rating.app.exception.handler;
 
 public class AppException extends RuntimeException {
 

@@ -1,6 +1,6 @@
 package com.ates.rating.app.security.security.services;
 
-import com.ates.rating.app.exception.AppException;
+import com.ates.rating.app.exception.handler.AppException;
 import com.ates.rating.app.model.User;
 import com.ates.rating.app.repository.ClassEntityRepository;
 import com.ates.rating.app.repository.DepartmentRepository;

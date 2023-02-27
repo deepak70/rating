@@ -34,8 +34,8 @@ public class CommonAPIController {
     }
 
     @GetMapping("/get-class")
-    public GenericResponse<ClassList> getClassList() {
-        var classList = classService.getClassList();
+    public GenericResponse<ClassList> getClassList(@RequestParam(required = false,defaultValue = "0") Long departmentId) {
+        var classList = classService.getClassList(departmentId);
         return GenericResponse.<ClassList>builder()
                 .success(true)
                 .data(classList)

@@ -20,7 +20,8 @@ public class DepartmentEntity extends BaseEntity {
     private Long id;
     private String department;
     @Column(columnDefinition = "boolean default true")
-    private Boolean active=true;
+    private Boolean active = true;
+    private Integer departmentId;
 
     @Override
     public boolean equals(Object o) {

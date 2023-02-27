@@ -19,6 +19,7 @@ public class SemesterEntity extends BaseEntity {
     @Column(name = "id", nullable = false)
     private Long id;
     private String semester;
+    private Integer semesterId;
     @Column(columnDefinition = "boolean default true")
     private boolean active=true;
 }

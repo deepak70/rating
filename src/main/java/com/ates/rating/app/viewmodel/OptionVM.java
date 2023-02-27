@@ -16,5 +16,6 @@ public class OptionVM {
     private Long semesterId;
     private Long classId;
     private Long departmentId;
-    private List<SaveOptionVM> saveOptionVMS;
+    private List<SubjectUserOptionVM> subjectUserOptionVMS;
+
 }

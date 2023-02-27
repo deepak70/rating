@@ -46,13 +46,15 @@ public class UserDetailsImpl implements UserDetails {
         List<GrantedAuthority> authorities = user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority(role.getRoleName().name()))
                 .collect(Collectors.toList());
-        var classList = new ClassList().setClassVM(Collections.singletonList(new ClassVM().setClassName(user.getStudentClass().getClassName())
-                .setId(user.getStudentClass().getId())
-                .setDepartmentId(user.getStudentClass().getDepartmentEntity().getId())));
-        var departmentList = new DepartmentListVM().setDepartmentVMS(Collections.singletonList(new DepartmentVM()
-                .setDepartment(user.getDepartment().getDepartment())
-                .setId(user.getDepartment().getId())
-        ));
+        var classList = new ClassList().setClassVM(Collections
+                .singletonList(new ClassVM().setClassName(user.getStudentClass().getClassName())
+                        .setId(user.getStudentClass().getId())
+                        .setDepartmentId(user.getStudentClass().getDepartmentEntity().getId())));
+        var departmentList = new DepartmentListVM().setDepartmentVMS(Collections
+                .singletonList(new DepartmentVM()
+                        .setDepartment(user.getDepartment().getDepartment())
+                        .setId(user.getDepartment().getId())
+                ));
         return new UserDetailsImpl(
                 user.getId(),
                 user.getUsername(),

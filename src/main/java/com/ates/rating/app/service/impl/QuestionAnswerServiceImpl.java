@@ -1,6 +1,6 @@
 package com.ates.rating.app.service.impl;
 
-import com.ates.rating.app.exception.AppException;
+import com.ates.rating.app.exception.handler.AppException;
 import com.ates.rating.app.model.FeedbackList;
 import com.ates.rating.app.model.SubjectMasterEntity;
 import com.ates.rating.app.model.UserOption;
@@ -16,6 +16,7 @@ import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
@@ -68,10 +69,8 @@ public class QuestionAnswerServiceImpl implements QuestionAnswerService {
     }
 
     @Override
-    public SubjectWiseQuestionAnswerVM getQuestionsAndAnswerWithSemester(Long userId,
-                                                                         String feedbackType,
-                                                                         Long semesterId,
-                                                                         Long year,
+    public SubjectWiseQuestionAnswerVM getQuestionsAndAnswerWithSemester(Long userId, String feedbackType,
+                                                                         Long semesterId, Long year,
                                                                          Long classId) {
         var classEntity = classEntityRepository.findById(classId)
                 .orElseThrow(() -> new AppException("class id not found"));
@@ -85,12 +84,20 @@ public class QuestionAnswerServiceImpl implements QuestionAnswerService {
         }
         var feedback = feedbackListRepository.findByFeedbackType(feedbackType)
                 .orElseThrow(() -> new AppException("Feedback type not found "));
-        return new SubjectWiseQuestionAnswerVM().setSubjectQuestionAndAnswerVMS(subjectMasterEntities.stream()
-                .map(subjectMasterEntity -> new SubjectQuestionAndAnswerVM().setSubjectId(subjectMasterEntity.getId())
-                        .setSubject(subjectMasterEntity.getSubject())
-                        .setFeedbackOptionVMS(getAllQuestionAnswer(feedback))
-                        .setFeedbackQuestionVM(getFeedbackQuestion(feedback)))
-                .toList());
+
+        var subjectQuestionAndAnswerVMS = new SubjectWiseQuestionAnswerVM()
+                .setSubjectQuestionAndAnswerVMS(subjectMasterEntities.stream()
+                        .map(subjectMasterEntity -> new SubjectQuestionAndAnswerVM().setSubjectId(subjectMasterEntity.getId())
+                                .setSubject(subjectMasterEntity.getSubject())
+                                .setFeedbackOptionVMS(getAllQuestionAnswer(feedback))
+                                .setFeedbackQuestionVM(getFeedbackQuestion(feedback)))
+                        .toList());
+        AtomicReference<Long> totalNoOfQuestions = new AtomicReference<>(0L);
+        subjectQuestionAndAnswerVMS.getSubjectQuestionAndAnswerVMS().forEach(subjectQuestionAndAnswerVM -> {
+            totalNoOfQuestions.set(totalNoOfQuestions.get() + subjectQuestionAndAnswerVM.getFeedbackQuestionVM().size());
+        });
+        return subjectQuestionAndAnswerVMS.setTotalNoOfQuestions(totalNoOfQuestions.get());
+
     }
 
     @Override
@@ -104,24 +111,31 @@ public class QuestionAnswerServiceImpl implements QuestionAnswerService {
                     .orElseThrow(() -> new AppException("Department not found "));
             var classEntity = classEntityRepository.findById(optionVM.getClassId())
                     .orElseThrow(() -> new AppException("Class id not found"));
-            var vm = optionVM.getSaveOptionVMS().stream()
-                    .map(saveAnswerVM -> {
-                        var question = feedbackQuestionRepository.findById(saveAnswerVM.getQuestionId())
-                                .orElseThrow(() -> new AppException("Question not found"));
-                        var answer = feedbackAnswerRepository.findById(saveAnswerVM.getSelectedOptionId()).
-                                orElseThrow(() -> new AppException("Option not found"));
-                        return new UserOption()
-                                .setUser(users)
-                                .setYear(optionVM.getYear())
-                                .setFeedback(question.getFeedbackList())
-                                .setFeedbackAnswer(answer)
-                                .setSemesterEntity(semester)
-                                .setDepartment(department)
-                                .setClassEntity(classEntity)
-                                .setFeedbackQuestionEntity(question);
-                    }).toList();
+            optionVM.getSubjectUserOptionVMS()
+                    .forEach(subjectUserOptionVM -> {
+                        var subjectMasterEntity = subjectMasterEntityRepository.findById(subjectUserOptionVM.getSubjectId()).
+                                orElseThrow(() -> new AppException("Subject not found "));
+                        var userOptions = subjectUserOptionVM.getSaveOptionVMS()
+                                .stream()
+                                .map(saveOptionVM -> {
+                                    var question = feedbackQuestionRepository.findById(saveOptionVM.getQuestionId())
+                                            .orElseThrow(() -> new AppException("Question not found"));
+                                    var answer = feedbackAnswerRepository.findById(saveOptionVM.getSelectedOptionId()).
+                                            orElseThrow(() -> new AppException("Option not found"));
+                                    return new UserOption()
+                                            .setUser(users)
+                                            .setSubjectMasterEntity(subjectMasterEntity)
+                                            .setYear(optionVM.getYear())
+                                            .setFeedback(question.getFeedbackList())
+                                            .setFeedbackAnswer(answer)
+                                            .setSemesterEntity(semester)
+                                            .setDepartment(department)
+                                            .setClassEntity(classEntity)
+                                            .setFeedbackQuestionEntity(question);
+                                }).toList();
+                        userAnswerRepository.saveAll(userOptions);
+                    });
 
-            userAnswerRepository.saveAll(vm);
             return true;
         } catch (Exception e) {
             e.printStackTrace();

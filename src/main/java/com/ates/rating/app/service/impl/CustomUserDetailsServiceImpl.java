@@ -1,6 +1,6 @@
 package com.ates.rating.app.service.impl;
 
-import com.ates.rating.app.exception.AppException;
+import com.ates.rating.app.exception.handler.AppException;
 import com.ates.rating.app.model.Provider;
 import com.ates.rating.app.model.Role;
 import com.ates.rating.app.model.RoleEnum;

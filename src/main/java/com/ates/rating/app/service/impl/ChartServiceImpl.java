@@ -1,6 +1,6 @@
 package com.ates.rating.app.service.impl;
 
-import com.ates.rating.app.exception.AppException;
+import com.ates.rating.app.exception.handler.AppException;
 import com.ates.rating.app.model.FeedbackAnswerEntity;
 import com.ates.rating.app.model.UserOption;
 import com.ates.rating.app.repository.FeedbackAnswerRepository;

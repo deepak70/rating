@@ -4,13 +4,10 @@ import com.ates.rating.app.GenericResponse;
 import com.ates.rating.app.security.security.services.UserDetailsImpl;
 import com.ates.rating.app.service.QuestionAnswerService;
 import com.ates.rating.app.viewmodel.OptionVM;
-import com.ates.rating.app.viewmodel.QuestionAndAnswerVM;
-import com.ates.rating.app.viewmodel.SubjectQuestionAndAnswerVM;
 import com.ates.rating.app.viewmodel.SubjectWiseQuestionAnswerVM;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
